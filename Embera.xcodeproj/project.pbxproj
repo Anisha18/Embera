@@ -6,14 +6,51 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		40CFC4772F9858FA00EABEA0 /* EmberaWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 40CFC46D2F9858F900EABEA0 /* EmberaWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		40CFC4832F985C9000EABEA0 /* DataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40CFC4822F985C9000EABEA0 /* DataManager.swift */; };
+		40CFC4842F985C9F00EABEA0 /* DataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40CFC4822F985C9000EABEA0 /* DataManager.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		40CFC4752F9858FA00EABEA0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 408C8B3E2F922D1D00ED84BE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 40CFC46C2F9858F900EABEA0;
+			remoteInfo = "EmberaWatch Watch App";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		40CFC4782F9858FA00EABEA0 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				40CFC4772F9858FA00EABEA0 /* EmberaWatch Watch App.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		408C8B462F922D1D00ED84BE /* Embera.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Embera.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		40CFC46D2F9858F900EABEA0 /* EmberaWatch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "EmberaWatch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		40CFC4822F985C9000EABEA0 /* DataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		408C8B482F922D1D00ED84BE /* Embera */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Embera;
+			sourceTree = "<group>";
+		};
+		40CFC46E2F9858F900EABEA0 /* EmberaWatch Watch App */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "EmberaWatch Watch App";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -26,13 +63,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		40CFC46A2F9858F900EABEA0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		408C8B3D2F922D1D00ED84BE = {
 			isa = PBXGroup;
 			children = (
+				40CFC4822F985C9000EABEA0 /* DataManager.swift */,
 				408C8B482F922D1D00ED84BE /* Embera */,
+				40CFC46E2F9858F900EABEA0 /* EmberaWatch Watch App */,
 				408C8B472F922D1D00ED84BE /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +87,7 @@
 			isa = PBXGroup;
 			children = (
 				408C8B462F922D1D00ED84BE /* Embera.app */,
+				40CFC46D2F9858F900EABEA0 /* EmberaWatch Watch App.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -55,10 +102,12 @@
 				408C8B422F922D1D00ED84BE /* Sources */,
 				408C8B432F922D1D00ED84BE /* Frameworks */,
 				408C8B442F922D1D00ED84BE /* Resources */,
+				40CFC4782F9858FA00EABEA0 /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				40CFC4762F9858FA00EABEA0 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				408C8B482F922D1D00ED84BE /* Embera */,
@@ -68,6 +117,28 @@
 			);
 			productName = Embera;
 			productReference = 408C8B462F922D1D00ED84BE /* Embera.app */;
+			productType = "com.apple.product-type.application";
+		};
+		40CFC46C2F9858F900EABEA0 /* EmberaWatch Watch App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 40CFC47B2F9858FA00EABEA0 /* Build configuration list for PBXNativeTarget "EmberaWatch Watch App" */;
+			buildPhases = (
+				40CFC4692F9858F900EABEA0 /* Sources */,
+				40CFC46A2F9858F900EABEA0 /* Frameworks */,
+				40CFC46B2F9858F900EABEA0 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				40CFC46E2F9858F900EABEA0 /* EmberaWatch Watch App */,
+			);
+			name = "EmberaWatch Watch App";
+			packageProductDependencies = (
+			);
+			productName = "EmberaWatch Watch App";
+			productReference = 40CFC46D2F9858F900EABEA0 /* EmberaWatch Watch App.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -82,6 +153,9 @@
 				TargetAttributes = {
 					408C8B452F922D1D00ED84BE = {
 						CreatedOnToolsVersion = 26.4;
+					};
+					40CFC46C2F9858F900EABEA0 = {
+						CreatedOnToolsVersion = 26.4.1;
 					};
 				};
 			};
@@ -100,12 +174,20 @@
 			projectRoot = "";
 			targets = (
 				408C8B452F922D1D00ED84BE /* Embera */,
+				40CFC46C2F9858F900EABEA0 /* EmberaWatch Watch App */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		408C8B442F922D1D00ED84BE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		40CFC46B2F9858F900EABEA0 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -119,10 +201,27 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				40CFC4832F985C9000EABEA0 /* DataManager.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		40CFC4692F9858F900EABEA0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				40CFC4842F985C9F00EABEA0 /* DataManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		40CFC4762F9858FA00EABEA0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 40CFC46C2F9858F900EABEA0 /* EmberaWatch Watch App */;
+			targetProxy = 40CFC4752F9858FA00EABEA0 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		408C8B4F2F922D1E00ED84BE /* Debug */ = {
@@ -251,11 +350,15 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				CODE_SIGN_ENTITLEMENTS = Embera/Embera.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = JAZ7W3T4X6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Embera;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -283,11 +386,15 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				CODE_SIGN_ENTITLEMENTS = Embera/Embera.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = JAZ7W3T4X6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Embera;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -310,6 +417,72 @@
 			};
 			name = Release;
 		};
+		40CFC4792F9858FA00EABEA0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = JAZ7W3T4X6;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = EmberaWatch;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.anishadsz.Embera;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.anishadsz.Embera.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.4;
+			};
+			name = Debug;
+		};
+		40CFC47A2F9858FA00EABEA0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = JAZ7W3T4X6;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = EmberaWatch;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.anishadsz.Embera;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.anishadsz.Embera.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.4;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -327,6 +500,15 @@
 			buildConfigurations = (
 				408C8B522F922D1E00ED84BE /* Debug */,
 				408C8B532F922D1E00ED84BE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		40CFC47B2F9858FA00EABEA0 /* Build configuration list for PBXNativeTarget "EmberaWatch Watch App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				40CFC4792F9858FA00EABEA0 /* Debug */,
+				40CFC47A2F9858FA00EABEA0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
