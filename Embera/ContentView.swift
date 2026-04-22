@@ -2,6 +2,14 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var selectedTab: Int = 0
+    
+    // Detects if the system is in Light or Dark mode
+    @Environment(\.colorScheme) var colorScheme
+
+    // Logic to use your adaptive asset "EmberaText"
+    private var mainTextColor: Color {
+        Color("EmberaText")
+    }
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -12,7 +20,11 @@ struct ContentView: View {
                 } else {
                     // Placeholder for your InsightsView
                     Text("Insights View")
+                        .font(.title)
+                        .foregroundColor(mainTextColor)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        // Ensure background fills the screen behind the text
+                        .background(colorScheme == .dark ? Color.black : Color(red: 0.98, green: 0.97, blue: 0.95))
                 }
             }
 
@@ -27,8 +39,10 @@ struct ContentView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(selectedTab == 0 ? Capsule().fill(Color(white: 0.9)) : Capsule().fill(Color.clear))
-                    .foregroundColor(selectedTab == 0 ? .blue : .secondary)
+                    // Highlighting the capsule based on selection
+                    .background(selectedTab == 0 ? Capsule().fill(colorScheme == .dark ? Color(white: 0.2) : Color(white: 0.9)) : Capsule().fill(Color.clear))
+                    // Uses EmberaText for the active tab and secondary for inactive
+                    .foregroundColor(selectedTab == 0 ? mainTextColor : .secondary)
                 }
                 .padding(4)
 
@@ -41,17 +55,22 @@ struct ContentView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(selectedTab == 1 ? Capsule().fill(Color(white: 0.9)) : Capsule().fill(Color.clear))
-                    .foregroundColor(selectedTab == 1 ? .blue : .secondary)
+                    .background(selectedTab == 1 ? Capsule().fill(colorScheme == .dark ? Color(white: 0.2) : Color(white: 0.9)) : Capsule().fill(Color.clear))
+                    .foregroundColor(selectedTab == 1 ? mainTextColor : .secondary)
                 }
                 .padding(4)
             }
             .frame(width: 240, height: 60)
-            .background(Color(white: 0.98))
+            // Tab bar background adjusts for Dark Mode
+            .background(colorScheme == .dark ? Color(white: 0.12) : Color(white: 0.98))
             .clipShape(Capsule())
-            .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
+            .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.3 : 0.1), radius: 10, x: 0, y: 5)
             .padding(.bottom, 30)
         }
         .edgesIgnoringSafeArea(.bottom)
     }
+}
+
+#Preview {
+    ContentView()
 }

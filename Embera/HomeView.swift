@@ -2,14 +2,23 @@ import SwiftUI
 
 struct HomeView: View {
     @State private var isAnimating = false
+    @State private var flushCount: Int = DataManager.shared.getTodayCount()
     
-    // Theme Colors based on your template
+    // Detects if the system is in Light or Dark mode
+    @Environment(\.colorScheme) var colorScheme
+    
+    // Theme Colors
     let backgroundWhite = Color(red: 0.98, green: 0.97, blue: 0.95)
     let cardBeige = Color(red: 0.96, green: 0.92, blue: 0.89)
     let cardRose = Color(red: 0.97, green: 0.91, blue: 0.89)
     let accentTerracotta = Color(red: 0.82, green: 0.44, blue: 0.33)
     let buttonGrey = Color(red: 0.88, green: 0.85, blue: 0.82)
     
+    // Logic to use your adaptive asset "EmberaText"
+    private var mainTextColor: Color {
+        Color("EmberaText")
+    }
+
     private var isNightTime: Bool {
         let hour = Calendar.current.component(.hour, from: Date())
         return hour >= 20 || hour < 8
@@ -17,7 +26,9 @@ struct HomeView: View {
 
     var body: some View {
         ZStack {
-            backgroundWhite.ignoresSafeArea() // Matches the soft background
+            // Adaptive Background: switches to black in Dark Mode
+            (colorScheme == .dark ? Color.black : backgroundWhite)
+                .ignoresSafeArea()
             
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 20) {
@@ -25,7 +36,7 @@ struct HomeView: View {
                     HStack {
                         Text("Today's Outlook")
                             .font(.system(size: 34, weight: .bold))
-                            .foregroundColor(Color(white: 0.1))
+                            .foregroundColor(mainTextColor)
                         Spacer()
                         Circle()
                             .fill(buttonGrey)
@@ -42,6 +53,7 @@ struct HomeView: View {
                                 .foregroundColor(accentTerracotta)
                             Text("Hot Flush Forecast")
                                 .font(.headline)
+                                .foregroundColor(mainTextColor)
                         }
                         
                         VStack(spacing: 12) {
@@ -54,7 +66,6 @@ struct HomeView: View {
                                     ))
                                     .frame(height: isNightTime ? 8 : 12)
                                 
-                                // --- ANIMATED BURNING LOGO ---
                                 Image("Embera")
                                     .resizable()
                                     .aspectRatio(contentMode: .fit)
@@ -76,11 +87,12 @@ struct HomeView: View {
                     }
                     .padding(.vertical, isNightTime ? 25 : 45)
                     .padding(.horizontal)
-                    .background(cardBeige)
-                    .cornerRadius(28) // Softer corners from template
+                    // Shifts card color to dark gray in Dark Mode
+                    .background(colorScheme == .dark ? Color(white: 0.15) : cardBeige)
+                    .cornerRadius(28)
                     .padding(.horizontal)
 
-                    // Nighttime Only: Reflection Card
+                    // Nighttime Reflection Card
                     if isNightTime {
                         VStack(spacing: 20) {
                             HStack {
@@ -88,9 +100,10 @@ struct HomeView: View {
                                     .foregroundColor(.yellow)
                                 Text("Good Evening, Laura!")
                                     .font(.headline)
+                                    .foregroundColor(mainTextColor)
                             }
                             
-                            Text("You had 2 hot flushes today.\nLet's pause to reflect")
+                            Text("You had \(flushCount) hot flushes today.\nLet's pause to reflect")
                                 .multilineTextAlignment(.center)
                                 .foregroundColor(.secondary)
                                 .lineSpacing(4)
@@ -113,7 +126,7 @@ struct HomeView: View {
                             }
                         }
                         .padding(25)
-                        .background(cardRose)
+                        .background(colorScheme == .dark ? Color(white: 0.12) : cardRose)
                         .cornerRadius(28)
                         .padding(.horizontal)
                     }
@@ -125,18 +138,17 @@ struct HomeView: View {
                                 .foregroundColor(.yellow)
                             Text("Be prepared")
                                 .font(.headline)
-                            Spacer()
-                            Text("See all").foregroundColor(.teal)
+                                .foregroundColor(mainTextColor)
                         }
                         
-                        TipRow(icon: "waterbottle.fill", title: "Keep cold water close", subtitle: "Split throughout the morning")
-                        Divider() // Cleaner look from the screenshot
-                        TipRow(icon: "tshirt.fill", title: "Wear extra layer of clothes", subtitle: "Easy to remove in public")
+                        TipRow(icon: "waterbottle.fill", title: "Keep cold water close", subtitle: "Split throughout the morning", textColor: mainTextColor)
                         Divider()
-                        TipRow(icon: "wind", title: "Try 4-6 breathing technique", subtitle: "4 in, 6 out")
+                        TipRow(icon: "tshirt.fill", title: "Wear extra layer of clothes", subtitle: "Easy to remove in public", textColor: mainTextColor)
+                        Divider()
+                        TipRow(icon: "wind", title: "Try 4-6 breathing technique", subtitle: "4 in, 6 out", textColor: mainTextColor)
                     }
                     .padding(25)
-                    .background(.white) // Tips cards are typically white in this style
+                    .background(colorScheme == .dark ? Color(white: 0.1) : .white)
                     .cornerRadius(28)
                     .padding(.horizontal)
                     
@@ -145,9 +157,18 @@ struct HomeView: View {
             }
         }
         .onAppear {
+            flushCount = DataManager.shared.getTodayCount()
             withAnimation(.easeInOut(duration: 0.7).repeatForever(autoreverses: true)) {
                 isAnimating = true
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("FlushLogged"))) { _ in
+            // This tells the phone: "Hey, the watch just logged something, refresh the number!"
+            flushCount = DataManager.shared.getTodayCount()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+            // This ensures the phone checks the "Shared Vault" every time you open the app
+            flushCount = DataManager.shared.getTodayCount()
         }
     }
 }
@@ -156,6 +177,7 @@ struct TipRow: View {
     let icon: String
     let title: String
     let subtitle: String
+    let textColor: Color
     
     var body: some View {
         HStack(alignment: .center, spacing: 15) {
@@ -164,9 +186,18 @@ struct TipRow: View {
                 Image(systemName: icon).foregroundColor(.blue)
             }
             VStack(alignment: .leading) {
-                Text(title).font(.subheadline).bold()
-                Text(subtitle).font(.caption).foregroundColor(.secondary)
+                Text(title)
+                    .font(.subheadline)
+                    .bold()
+                    .foregroundColor(textColor)
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
         }
     }
+}
+
+#Preview {
+    HomeView()
 }

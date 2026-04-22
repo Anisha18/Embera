@@ -62,6 +62,9 @@ struct WatchHomeView: View {
     private func triggerLog() {
         if showSuccess { return }
         
+        // 1. ADD THIS LINE: This physically saves the data to the App Group
+        DataManager.shared.logFlush()
+        
         #if os(watchOS)
         WKInterfaceDevice.current().play(.success)
         #endif
@@ -70,7 +73,6 @@ struct WatchHomeView: View {
             showSuccess = true
         }
         
-        // Reset after 2 seconds
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             withAnimation {
                 showSuccess = false
