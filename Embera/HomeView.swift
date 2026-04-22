@@ -2,9 +2,9 @@ import SwiftUI
 
 struct HomeView: View {
     @State private var isAnimating = false
-    @State private var flushCount: Int = DataManager.shared.getTodayCount()
+    @State private var isShowingReflection = false
+    @State private var flushCount: Int = DataManager.shared.getTodayCount() // Preserved logic
     
-    // Detects if the system is in Light or Dark mode
     @Environment(\.colorScheme) var colorScheme
     
     // Theme Colors
@@ -14,9 +14,13 @@ struct HomeView: View {
     let accentTerracotta = Color(red: 0.82, green: 0.44, blue: 0.33)
     let buttonGrey = Color(red: 0.88, green: 0.85, blue: 0.82)
     
-    // Logic to use your adaptive asset "EmberaText"
+    // Tip Icon Colors from your refined design
+    let blueWater = Color(red: 0.15, green: 0.70, blue: 0.84)
+    let greenTshirt = Color(red: 0.26, green: 0.82, blue: 0.72)
+    let greyWind = Color(red: 0.53, green: 0.59, blue: 0.67)
+    
     private var mainTextColor: Color {
-        Color("EmberaText")
+        Color("EmberaText") // Preserved adaptive color
     }
 
     private var isNightTime: Bool {
@@ -26,7 +30,6 @@ struct HomeView: View {
 
     var body: some View {
         ZStack {
-            // Adaptive Background: switches to black in Dark Mode
             (colorScheme == .dark ? Color.black : backgroundWhite)
                 .ignoresSafeArea()
             
@@ -41,7 +44,13 @@ struct HomeView: View {
                         Circle()
                             .fill(buttonGrey)
                             .frame(width: 40, height: 40)
-                            .overlay(Image(systemName: "person.fill").foregroundColor(.gray))
+                            // Updated to use your ProfileIcon asset
+                            .overlay(
+                                Image("ProfileIcon")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .clipShape(Circle())
+                            )
                     }
                     .padding(.horizontal)
                     .padding(.top, 20)
@@ -87,21 +96,16 @@ struct HomeView: View {
                     }
                     .padding(.vertical, isNightTime ? 25 : 45)
                     .padding(.horizontal)
-                    // Shifts card color to dark gray in Dark Mode
-                    .background(colorScheme == .dark ? Color(white: 0.15) : cardBeige)
+                    .background(colorScheme == .dark ? Color(white: 0.15) : .white) // Updated to white background
                     .cornerRadius(28)
                     .padding(.horizontal)
 
                     // Nighttime Reflection Card
                     if isNightTime {
                         VStack(spacing: 20) {
-                            HStack {
-                                Image(systemName: "moon.stars.fill")
-                                    .foregroundColor(.yellow)
-                                Text("Good Evening, Laura!")
-                                    .font(.headline)
-                                    .foregroundColor(mainTextColor)
-                            }
+                            Text("Good Evening, Laura!")
+                                .font(.headline)
+                                .foregroundColor(mainTextColor)
                             
                             Text("You had \(flushCount) hot flushes today.\nLet's pause to reflect")
                                 .multilineTextAlignment(.center)
@@ -109,20 +113,23 @@ struct HomeView: View {
                                 .lineSpacing(4)
                             
                             HStack(spacing: 15) {
-                                Button("Later") {}
+                                Button("Later") { }
                                     .frame(maxWidth: .infinity)
                                     .padding()
-                                    .background(buttonGrey)
-                                    .foregroundColor(.black)
+                                    .background(colorScheme == .dark ? Color(white: 0.2) : .white)
+                                    .foregroundColor(mainTextColor)
                                     .cornerRadius(25)
+                                    .overlay(RoundedRectangle(cornerRadius: 25).stroke(buttonGrey, lineWidth: 1))
                                 
-                                Button("Reflect") {}
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(accentTerracotta)
-                                    .foregroundColor(.white)
-                                    .font(.headline)
-                                    .cornerRadius(25)
+                                Button("Reflect") {
+                                    isShowingReflection = true
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(accentTerracotta)
+                                .foregroundColor(.white)
+                                .font(.headline)
+                                .cornerRadius(25)
                             }
                         }
                         .padding(25)
@@ -133,19 +140,16 @@ struct HomeView: View {
 
                     // Tips Card
                     VStack(alignment: .leading, spacing: 20) {
-                        HStack {
-                            Image(systemName: "lightbulb.fill")
-                                .foregroundColor(.yellow)
-                            Text("Be prepared")
-                                .font(.headline)
-                                .foregroundColor(mainTextColor)
-                        }
+                        Text("Be prepared")
+                            .font(.headline)
+                            .foregroundColor(mainTextColor)
                         
-                        TipRow(icon: "waterbottle.fill", title: "Keep cold water close", subtitle: "Split throughout the morning", textColor: mainTextColor)
+                        // Updated TipRows with specific icon colors
+                        TipRow(icon: "waterbottle.fill", iconColor: blueWater, title: "Keep cold water close", subtitle: "Split throughout the morning", textColor: mainTextColor)
                         Divider()
-                        TipRow(icon: "tshirt.fill", title: "Wear extra layer of clothes", subtitle: "Easy to remove in public", textColor: mainTextColor)
+                        TipRow(icon: "tshirt.fill", iconColor: greenTshirt, title: "Wear extra layer of clothes", subtitle: "Easy to remove in public", textColor: mainTextColor)
                         Divider()
-                        TipRow(icon: "wind", title: "Try 4-6 breathing technique", subtitle: "4 in, 6 out", textColor: mainTextColor)
+                        TipRow(icon: "wind", iconColor: greyWind, title: "Try 4-6 breathing technique", subtitle: "4 in, 6 out", textColor: mainTextColor)
                     }
                     .padding(25)
                     .background(colorScheme == .dark ? Color(white: 0.1) : .white)
@@ -156,18 +160,20 @@ struct HomeView: View {
                 }
             }
         }
+        .sheet(isPresented: $isShowingReflection) {
+            ReflectionView() // Launch the reflection pop-over
+        }
         .onAppear {
             flushCount = DataManager.shared.getTodayCount()
             withAnimation(.easeInOut(duration: 0.7).repeatForever(autoreverses: true)) {
                 isAnimating = true
             }
         }
+        // Preserved Notification Listeners
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("FlushLogged"))) { _ in
-            // This tells the phone: "Hey, the watch just logged something, refresh the number!"
             flushCount = DataManager.shared.getTodayCount()
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
-            // This ensures the phone checks the "Shared Vault" every time you open the app
             flushCount = DataManager.shared.getTodayCount()
         }
     }
@@ -175,6 +181,7 @@ struct HomeView: View {
 
 struct TipRow: View {
     let icon: String
+    let iconColor: Color // Added for color variety
     let title: String
     let subtitle: String
     let textColor: Color
@@ -182,8 +189,8 @@ struct TipRow: View {
     var body: some View {
         HStack(alignment: .center, spacing: 15) {
             ZStack {
-                Circle().fill(Color.blue.opacity(0.1)).frame(width: 40, height: 40)
-                Image(systemName: icon).foregroundColor(.blue)
+                Circle().fill(iconColor.opacity(0.1)).frame(width: 40, height: 40)
+                Image(systemName: icon).foregroundColor(iconColor)
             }
             VStack(alignment: .leading) {
                 Text(title)

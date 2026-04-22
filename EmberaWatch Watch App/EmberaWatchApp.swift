@@ -9,6 +9,10 @@ import SwiftUI
 
 @main
 struct EmberaWatch_Watch_AppApp: App {
+    init() {
+        _ = DataManager.shared
+    }
+    
     var body: some Scene {
         WindowGroup {
             WatchHomeView()
