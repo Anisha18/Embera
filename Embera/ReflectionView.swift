@@ -2,9 +2,8 @@ import SwiftUI
 
 struct ReflectionView: View {
     @Environment(\.dismiss) var dismiss
-    @Environment(\.colorScheme) var colorScheme // Detect dark/light mode
+    @Environment(\.colorScheme) var colorScheme
     
-    // State for the form
     @State private var coffeeCups = 0
     @State private var hadAlcohol = false
     @State private var hadSpicyFood = false
@@ -12,10 +11,8 @@ struct ReflectionView: View {
     @State private var nightSweat = false
     @State private var stressed = false
     
-    // Theme Colors
     let accentTerracotta = Color(red: 0.82, green: 0.44, blue: 0.33)
     
-    // Adaptive text color from your assets
     private var mainTextColor: Color {
         Color("EmberaText")
     }
@@ -25,58 +22,59 @@ struct ReflectionView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 25) {
                     
-                    // DRINKS SECTION
                     ReflectionSection(title: "DRINKS", titleColor: mainTextColor) {
                         ToggleRow(icon: "cup.and.saucer.fill", label: "Coffee cups", textColor: mainTextColor) {
                             HStack(spacing: 15) {
                                 Button(action: { if coffeeCups > 0 { coffeeCups -= 1 } }) {
                                     Image(systemName: "minus").foregroundColor(accentTerracotta)
                                 }
-                                Text("\(coffeeCups)")
-                                    .bold()
-                                    .foregroundColor(mainTextColor)
+                                Text("\(coffeeCups)").bold().foregroundColor(mainTextColor)
                                 Button(action: { coffeeCups += 1 }) {
                                     Image(systemName: "plus").foregroundColor(accentTerracotta)
                                 }
                             }
                             .padding(.horizontal, 10)
                         }
-                        
                         Divider().padding(.horizontal)
-                        
                         ToggleRow(icon: "wineglass.fill", label: "Had alcohol?", textColor: mainTextColor) {
                             YesNoToggle(isOn: $hadAlcohol)
                         }
                     }
                     
-                    // FOOD & LIFESTYLE SECTION
                     ReflectionSection(title: "FOOD & LIFESTYLE", titleColor: mainTextColor) {
                         ToggleRow(icon: "flame.fill", label: "Spicy food?", textColor: mainTextColor) {
                             YesNoToggle(isOn: $hadSpicyFood)
                         }
-                        
                         Divider().padding(.horizontal)
-                        
                         ToggleRow(icon: "wind", label: "Smoked?", textColor: mainTextColor) {
                             YesNoToggle(isOn: $smoked)
                         }
                     }
                     
-                    // WELLBEING SECTION
                     ReflectionSection(title: "WELLBEING", titleColor: mainTextColor) {
                         ToggleRow(icon: "moon.stars.fill", label: "Night sweat?", textColor: mainTextColor) {
                             YesNoToggle(isOn: $nightSweat)
                         }
-                        
                         Divider().padding(.horizontal)
-                        
                         ToggleRow(icon: "brain.head.profile", label: "Stressed?", textColor: mainTextColor) {
                             YesNoToggle(isOn: $stressed)
                         }
                     }
                     
-                    // ACTION BUTTON
-                    Button(action: { dismiss() }) {
+                    Button(action: {
+                        // SAVE LOGIC: Bundle the state into the struct and save
+                        let newReflection = ReflectionData(
+                            date: Date(),
+                            coffeeCups: coffeeCups,
+                            hadAlcohol: hadAlcohol,
+                            hadSpicyFood: hadSpicyFood,
+                            smoked: smoked,
+                            nightSweat: nightSweat,
+                            stressed: stressed
+                        )
+                        DataManager.shared.saveReflection(newReflection)
+                        dismiss()
+                    }) {
                         Text("Log Reflection")
                             .font(.headline)
                             .foregroundColor(.white)

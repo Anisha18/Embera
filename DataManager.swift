@@ -1,6 +1,16 @@
 import Foundation
 import WatchConnectivity
 
+struct ReflectionData: Codable {
+    let date: Date
+    let coffeeCups: Int
+    let hadAlcohol: Bool
+    let hadSpicyFood: Bool
+    let smoked: Bool
+    let nightSweat: Bool
+    let stressed: Bool
+}
+
 class DataManager: NSObject, WCSessionDelegate {
     static let shared = DataManager()
     
@@ -9,6 +19,7 @@ class DataManager: NSObject, WCSessionDelegate {
         static let processedFlushEventIDs = "processedFlushEventIDs"
         static let flushEventID = "flushEventID"
         static let flushTimestamp = "flushTimestamp"
+        static let lastReflection = "lastReflection"
     }
     
     // Ensure this string matches your App Group in the screenshot exactly
@@ -41,7 +52,7 @@ class DataManager: NSObject, WCSessionDelegate {
             WCSession.default.transferUserInfo(payload)
         }
     }
-
+    
     func getTodayCount() -> Int {
         let history = suite?.array(forKey: Keys.flushHistory) as? [Date] ?? []
         let calendar = Calendar.current
@@ -85,15 +96,32 @@ class DataManager: NSObject, WCSessionDelegate {
             self.saveFlush(date: date, eventID: eventID)
         }
     }
-
+    
+    func saveReflection(_ data: ReflectionData) {
+        if let encoded = try? JSONEncoder().encode(data) {
+            suite?.set(encoded, forKey: Keys.lastReflection)
+            // Notify the app to refresh the HomeView UI immediately
+            NotificationCenter.default.post(name: NSNotification.Name("ReflectionLogged"), object: nil)
+        }
+    }
+    
+    func hasReflectedToday() -> Bool {
+        guard let data = suite?.data(forKey: Keys.lastReflection),
+              let decoded = try? JSONDecoder().decode(ReflectionData.self, from: data) else {
+            return false
+        }
+        // Returns true only if the saved reflection was created today
+        return Calendar.current.isDateInToday(decoded.date)
+    }
+    
     // Required Delegate Methods
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {}
     
-    #if os(iOS)
+#if os(iOS)
     func sessionDidBecomeInactive(_ session: WCSession) {}
     func sessionDidDeactivate(_ session: WCSession) { session.activate() }
-    #endif
-
+#endif
+    
     func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
         handleIncomingPayload(message)
     }

@@ -3,24 +3,24 @@ import SwiftUI
 struct HomeView: View {
     @State private var isAnimating = false
     @State private var isShowingReflection = false
-    @State private var flushCount: Int = DataManager.shared.getTodayCount() // Preserved logic
+    @State private var flushCount: Int = DataManager.shared.getTodayCount()
+    @State private var hasReflectedToday: Bool = DataManager.shared.hasReflectedToday()
+    @State private var temporarilyHideReflection = false
     
     @Environment(\.colorScheme) var colorScheme
     
     // Theme Colors
     let backgroundWhite = Color(red: 0.98, green: 0.97, blue: 0.95)
-    let cardBeige = Color(red: 0.96, green: 0.92, blue: 0.89)
     let cardRose = Color(red: 0.97, green: 0.91, blue: 0.89)
     let accentTerracotta = Color(red: 0.82, green: 0.44, blue: 0.33)
     let buttonGrey = Color(red: 0.88, green: 0.85, blue: 0.82)
     
-    // Tip Icon Colors from your refined design
     let blueWater = Color(red: 0.15, green: 0.70, blue: 0.84)
     let greenTshirt = Color(red: 0.26, green: 0.82, blue: 0.72)
     let greyWind = Color(red: 0.53, green: 0.59, blue: 0.67)
     
     private var mainTextColor: Color {
-        Color("EmberaText") // Preserved adaptive color
+        Color("EmberaText")
     }
 
     private var isNightTime: Bool {
@@ -44,7 +44,6 @@ struct HomeView: View {
                         Circle()
                             .fill(buttonGrey)
                             .frame(width: 40, height: 40)
-                            // Updated to use your ProfileIcon asset
                             .overlay(
                                 Image("ProfileIcon")
                                     .resizable()
@@ -96,14 +95,15 @@ struct HomeView: View {
                     }
                     .padding(.vertical, isNightTime ? 25 : 45)
                     .padding(.horizontal)
-                    .background(colorScheme == .dark ? Color(white: 0.15) : .white) // Updated to white background
+                    .background(colorScheme == .dark ? Color(white: 0.15) : .white)
                     .cornerRadius(28)
                     .padding(.horizontal)
 
-                    // Nighttime Reflection Card
-                    if isNightTime {
+                    // CONDITIONAL CONTENT AREA
+                    if isNightTime && !hasReflectedToday && !temporarilyHideReflection {
+                        // --- 1. NIGHTTIME: Reflection Card ---
                         VStack(spacing: 20) {
-                            Text("Good Evening, Laura!")
+                            Text("Good Evening!")
                                 .font(.headline)
                                 .foregroundColor(mainTextColor)
                             
@@ -113,13 +113,15 @@ struct HomeView: View {
                                 .lineSpacing(4)
                             
                             HStack(spacing: 15) {
-                                Button("Later") { }
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(colorScheme == .dark ? Color(white: 0.2) : .white)
-                                    .foregroundColor(mainTextColor)
-                                    .cornerRadius(25)
-                                    .overlay(RoundedRectangle(cornerRadius: 25).stroke(buttonGrey, lineWidth: 1))
+                                Button("Later") {
+                                    withAnimation(.spring()) { temporarilyHideReflection = true }
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(colorScheme == .dark ? Color(white: 0.2) : .white)
+                                .foregroundColor(mainTextColor)
+                                .cornerRadius(25)
+                                .overlay(RoundedRectangle(cornerRadius: 25).stroke(buttonGrey, lineWidth: 1))
                                 
                                 Button("Reflect") {
                                     isShowingReflection = true
@@ -136,6 +138,49 @@ struct HomeView: View {
                         .background(colorScheme == .dark ? Color(white: 0.12) : cardRose)
                         .cornerRadius(28)
                         .padding(.horizontal)
+                        .transition(.asymmetric(insertion: .opacity, removal: .move(edge: .leading)))
+                        
+                    } else if isNightTime && hasReflectedToday {
+                        // --- 2. NIGHTTIME: Reflection Complete (Disappears in Morning) ---
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Reflection Complete")
+                                    .font(.headline)
+                                    .foregroundColor(mainTextColor)
+                                Text("Rest well tonight.")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.title2)
+                                .foregroundColor(.green)
+                        }
+                        .padding(25)
+                        .background(colorScheme == .dark ? Color(white: 0.12) : Color.white)
+                        .cornerRadius(28)
+                        .padding(.horizontal)
+
+                    } else if !isNightTime && flushCount > 0 {
+                        // --- 3. DAYTIME: Action Plan (Only if flushes recorded) ---
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Daytime Progress")
+                                .font(.caption)
+                                .fontWeight(.bold)
+                                .foregroundColor(accentTerracotta)
+                                .textCase(.uppercase)
+                            
+                            Text("Laura, you have recorded \(flushCount) hot \(flushCount == 1 ? "flush" : "flushes") today. Make sure you follow the **Action Plan**.")
+                                .font(.body)
+                                .foregroundColor(mainTextColor)
+                                .lineSpacing(4)
+                        }
+                        .padding(25)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(colorScheme == .dark ? Color(white: 0.12) : Color.white)
+                        .cornerRadius(28)
+                        .padding(.horizontal)
+                        .transition(.opacity)
                     }
 
                     // Tips Card
@@ -144,7 +189,6 @@ struct HomeView: View {
                             .font(.headline)
                             .foregroundColor(mainTextColor)
                         
-                        // Updated TipRows with specific icon colors
                         TipRow(icon: "waterbottle.fill", iconColor: blueWater, title: "Keep cold water close", subtitle: "Split throughout the morning", textColor: mainTextColor)
                         Divider()
                         TipRow(icon: "tshirt.fill", iconColor: greenTshirt, title: "Wear extra layer of clothes", subtitle: "Easy to remove in public", textColor: mainTextColor)
@@ -161,21 +205,23 @@ struct HomeView: View {
             }
         }
         .sheet(isPresented: $isShowingReflection) {
-            ReflectionView() // Launch the reflection pop-over
+            ReflectionView()
         }
         .onAppear {
-            flushCount = DataManager.shared.getTodayCount()
+            refreshData()
+            temporarilyHideReflection = false
             withAnimation(.easeInOut(duration: 0.7).repeatForever(autoreverses: true)) {
                 isAnimating = true
             }
         }
-        // Preserved Notification Listeners
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("FlushLogged"))) { _ in
-            flushCount = DataManager.shared.getTodayCount()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
-            flushCount = DataManager.shared.getTodayCount()
-        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("FlushLogged"))) { _ in refreshData() }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("ReflectionLogged"))) { _ in refreshData() }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in refreshData() }
+    }
+    
+    private func refreshData() {
+        flushCount = DataManager.shared.getTodayCount()
+        hasReflectedToday = DataManager.shared.hasReflectedToday()
     }
 }
 
