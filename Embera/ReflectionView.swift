@@ -46,7 +46,6 @@ struct ReflectionView: View {
                             YesNoToggle(isOn: $hadSpicyFood)
                         }
                         Divider().padding(.horizontal)
-                        // Using your custom asset "cigarette" here
                         ToggleRow(icon: "cigarette", isSystemIcon: false, iconColor: Color(red: 0.45, green: 0.35, blue: 0.25), label: "Did you smoke today?", textColor: mainTextColor) {
                             YesNoToggle(isOn: $smoked)
                         }
@@ -64,7 +63,18 @@ struct ReflectionView: View {
                         }
                     }
                     
+                    // Logic updated here
                     Button(action: {
+                        let data = ReflectionData(
+                            date: Date(),
+                            coffeeCups: coffeeCups,
+                            hadAlcohol: hadAlcohol,
+                            hadSpicyFood: hadSpicyFood,
+                            smoked: smoked,
+                            nightSweat: nightSweat,
+                            stressed: stressed
+                        )
+                        DataManager.shared.saveReflection(data)
                         dismiss()
                     }) {
                         Text("Log Reflection")
@@ -125,7 +135,7 @@ struct ReflectionSection<Content: View>: View {
 
 struct ToggleRow<Control: View>: View {
     let icon: String
-    let isSystemIcon: Bool // New property to distinguish between SF Symbols and Assets
+    let isSystemIcon: Bool
     let iconColor: Color
     let label: String
     let textColor: Color
@@ -144,18 +154,17 @@ struct ToggleRow<Control: View>: View {
 
     var body: some View {
         HStack {
-            // Logic to switch between system icons and asset images
             if isSystemIcon {
                 Image(systemName: icon)
                     .foregroundColor(iconColor)
                     .font(.system(size: 20))
                     .frame(width: 30)
             } else {
-                Image(icon) // Looks for the asset name (e.g., "cigarette")
+                Image(icon)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 24, height: 24)
-                    .foregroundColor(iconColor) // Note: Asset must be set to "Render As Template" in Xcode
+                    .foregroundColor(iconColor)
                     .frame(width: 30)
             }
             
