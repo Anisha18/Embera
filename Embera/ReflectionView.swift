@@ -63,7 +63,6 @@ struct ReflectionView: View {
                         }
                     }
                     
-                    // Logic updated here
                     Button(action: {
                         let data = ReflectionData(
                             date: Date(),
@@ -89,6 +88,7 @@ struct ReflectionView: View {
                 }
                 .padding()
             }
+            // Background consistent with HomeView
             .background(colorScheme == .dark ? Color.black : Color(red: 0.98, green: 0.97, blue: 0.95))
             .navigationTitle("Daily Reflection")
             .navigationBarTitleDisplayMode(.inline)
@@ -105,6 +105,7 @@ struct ReflectionView: View {
 // MARK: - Reusable UI Components
 
 struct ReflectionSection<Content: View>: View {
+    @Environment(\.colorScheme) var colorScheme
     let title: String
     let titleColor: Color
     let content: Content
@@ -126,7 +127,8 @@ struct ReflectionSection<Content: View>: View {
             VStack(spacing: 0) {
                 content
             }
-            .background(Color.white)
+            // Card color updated for Dark Mode visibility
+            .background(colorScheme == .dark ? Color(white: 0.12) : Color.white)
             .cornerRadius(15)
             .shadow(color: Color.black.opacity(0.03), radius: 5, x: 0, y: 2)
         }
@@ -172,9 +174,9 @@ struct ToggleRow<Control: View>: View {
                 Text(label)
                     .font(.subheadline)
                     .bold()
-                    .foregroundColor(textColor)
+                    .foregroundColor(textColor) // This uses EmberaText
                 if let sub = subtitle {
-                    Text(sub).font(.caption2).foregroundColor(.gray)
+                    Text(sub).font(.caption2).foregroundColor(.secondary)
                 }
             }
             Spacer()
@@ -185,6 +187,7 @@ struct ToggleRow<Control: View>: View {
 }
 
 struct YesNoToggle: View {
+    @Environment(\.colorScheme) var colorScheme
     @Binding var isOn: Bool
     
     var body: some View {
@@ -192,8 +195,9 @@ struct YesNoToggle: View {
             Button("Yes") { isOn = true }
                 .padding(.horizontal, 15)
                 .padding(.vertical, 8)
-                .background(isOn ? Color.white : Color.clear)
-                .foregroundColor(isOn ? .black : .gray)
+                // Adapted for Dark Mode
+                .background(isOn ? (colorScheme == .dark ? Color(white: 0.3) : Color.white) : Color.clear)
+                .foregroundColor(isOn ? (colorScheme == .dark ? .white : .black) : .gray)
                 .cornerRadius(8)
                 .shadow(color: .black.opacity(isOn ? 0.1 : 0), radius: 2)
             
