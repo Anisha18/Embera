@@ -22,7 +22,6 @@ class DataManager: NSObject, WCSessionDelegate {
         static let lastReflection = "lastReflection"
     }
     
-    // Ensure this string matches your App Group in the screenshot exactly
     private let suite = UserDefaults(suiteName: "group.com.anishadsouza.Embera")
     
     override init() {
@@ -56,8 +55,7 @@ class DataManager: NSObject, WCSessionDelegate {
     func getTodayCount() -> Int {
         let history = suite?.array(forKey: Keys.flushHistory) as? [Date] ?? []
         let calendar = Calendar.current
-        let count = history.filter { calendar.isDateInToday($0) }.count
-        return count
+        return history.filter { calendar.isDateInToday($0) }.count
     }
     
     private func saveFlush(date: Date, eventID: String) {
@@ -68,7 +66,6 @@ class DataManager: NSObject, WCSessionDelegate {
         suite?.set(history, forKey: Keys.flushHistory)
         markProcessed(eventID: eventID)
         
-        print("Saved to UserDefaults. New total count: \(history.count)")
         NotificationCenter.default.post(name: NSNotification.Name("FlushLogged"), object: nil)
     }
     
@@ -87,9 +84,7 @@ class DataManager: NSObject, WCSessionDelegate {
         guard
             let eventID = payload[Keys.flushEventID] as? String,
             let timestamp = payload[Keys.flushTimestamp] as? TimeInterval
-        else {
-            return
-        }
+        else { return }
         
         let date = Date(timeIntervalSince1970: timestamp)
         DispatchQueue.main.async {
@@ -100,21 +95,39 @@ class DataManager: NSObject, WCSessionDelegate {
     func saveReflection(_ data: ReflectionData) {
         if let encoded = try? JSONEncoder().encode(data) {
             suite?.set(encoded, forKey: Keys.lastReflection)
-            // Notify the app to refresh the HomeView UI immediately
             NotificationCenter.default.post(name: NSNotification.Name("ReflectionLogged"), object: nil)
         }
     }
     
     func hasReflectedToday() -> Bool {
+        // If there were no flushes today, we don't need a reflection.
+        if getTodayCount() == 0 {
+            return true
+        }
+        
         guard let data = suite?.data(forKey: Keys.lastReflection),
               let decoded = try? JSONDecoder().decode(ReflectionData.self, from: data) else {
             return false
         }
-        // Returns true only if the saved reflection was created today
-        return Calendar.current.isDateInToday(decoded.date)
+        
+        let calendar = Calendar.current
+        let now = Date()
+        
+        if calendar.component(.hour, from: now) < 8 {
+            return calendar.isDateInToday(decoded.date) || calendar.isDateInYesterday(decoded.date)
+        }
+        
+        return calendar.isDateInToday(decoded.date)
     }
     
-    // Required Delegate Methods
+    func clearOldHistory() {
+        let history = suite?.array(forKey: Keys.flushHistory) as? [Date] ?? []
+        let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
+        let filteredHistory = history.filter { $0 > thirtyDaysAgo }
+        suite?.set(filteredHistory, forKey: Keys.flushHistory)
+    }
+    
+    // WCSessionDelegate
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {}
     
 #if os(iOS)

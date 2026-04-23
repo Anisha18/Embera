@@ -1,253 +1,430 @@
 import SwiftUI
 import Charts
 
-// Data model for the graph
 struct FlushData: Identifiable {
     let id = UUID()
     let day: Int
     let count: Int
+    let date: String
+    let triggers: [TriggerItem]
+
+    var dateLabel: String {
+        let components = date.split(separator: " ")
+        guard components.count >= 4 else { return "\(day)" }
+        return "\(components[1]) \(components[3].capitalized)"
+    }
+}
+
+struct TriggerItem: Identifiable {
+    let id = UUID()
+    let icon: String
+    let text: String
+}
+
+struct Article: Identifiable {
+    let id = UUID()
+    let title: String
+    let description: String
+    let attribution: String
+    let image: String
+    let url: String
 }
 
 struct InsightsView: View {
     @Environment(\.colorScheme) var colorScheme
     
-    // Theme Colors
+    // Theme Colors aligned with HomeView
     let backgroundWhite = Color(red: 0.98, green: 0.97, blue: 0.95)
     let accentTerracotta = Color(red: 0.82, green: 0.44, blue: 0.33)
     let chartLight = Color(red: 0.97, green: 0.91, blue: 0.89)
-    let buttonGrey = Color(red: 0.88, green: 0.85, blue: 0.82)
+    let tagBg = Color(red: 0.88, green: 0.85, blue: 0.82).opacity(0.4)
+    let mutedText = Color.secondary
+    let symbolColor = Color(red: 0.82, green: 0.44, blue: 0.33)
     
-    // Logic to use adaptive asset "EmberaText"
-    private var mainTextColor: Color {
-        Color("EmberaText")
+    private var mainTextColor: Color { Color("EmberaText") }
+    private var pageBackground: Color {
+        colorScheme == .dark ? Color.black : backgroundWhite
     }
 
-    // Mock data based on your screenshot's bars
+    private let calendar = Calendar.current
+    private let currentDate = Date()
+    
+    // State for selection
+    @State private var selectedMonth: String
+    @State private var selectedYear: String
+    @State private var selectedEntry: FlushData?
+    
+    let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    
+    init() {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM"
+        let now = Date()
+        _selectedMonth = State(initialValue: formatter.string(from: now))
+        _selectedYear = State(initialValue: String(Calendar.current.component(.year, from: now)))
+    }
+    
+    private var currentYear: String {
+        String(calendar.component(.year, from: currentDate))
+    }
+    
+    private var years: [String] {
+        Array(1970...calendar.component(.year, from: currentDate)).map { String($0) }.reversed()
+    }
+    
+    private var selectedMonthIndex: Int {
+        months.firstIndex(of: selectedMonth) ?? calendar.component(.month, from: currentDate) - 1
+    }
+    
+    private var daysInSelectedMonth: Int {
+        var components = DateComponents()
+        components.year = Int(selectedYear) ?? calendar.component(.year, from: currentDate)
+        components.month = selectedMonthIndex + 1
+        components.day = 1
+        
+        guard let date = calendar.date(from: components),
+              let range = calendar.range(of: .day, in: .month, for: date) else {
+            return 30
+        }
+        
+        return range.count
+    }
+    
+    private var chartContentWidth: CGFloat {
+        max(340, CGFloat(sampleData.count) * 60) // Width based on data points rather than month days
+    }
+    
+    private func nearestEntry(for day: Int) -> FlushData? {
+        sampleData.first { $0.day == day }
+    }
+    
+    private func displayTitle(for month: String) -> String {
+        if month == selectedMonth {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MMM"
+            if let date = formatter.date(from: month) {
+                formatter.dateFormat = "MMMM"
+                return formatter.string(from: date)
+            }
+        }
+        return month
+    }
+
+    let learnMoreArticles: [Article] = [
+        Article(title: "Many women do it alone", description: "The survey reports that 39% of Australian women manage menopause symptoms without treatment or support.", attribution: "Jean Hailes for Women's Health", image: "article1", url: "https://www.jeanhailes.org.au/health-a-z/menopause/menopause-management"),
+        Article(title: "Flushes last longer than you think", description: "Jean Hailes reports that 3 in 4 Australian women experience hot flushes and night sweats during menopause.", attribution: "Jean Hailes for Women's Health", image: "article2", url: "https://www.jeanhailes.org.au/health-a-z/menopause/hot-flushes-night-sweats"),
+        Article(title: "She thought it was her job", description: "Rebecca blamed workplace stress until a panic attack sent her to hospital at 46. Her story reframed what was really happening.", attribution: "Rebecca via Embera", image: "article3", url: "https://embera.io/blogs/stories/rebeccas-story")
+    ]
+    
     let sampleData: [FlushData] = [
-        FlushData(day: 2, count: 1),
-        FlushData(day: 8, count: 4),
-        FlushData(day: 12, count: 5),
-        FlushData(day: 14, count: 4),
-        FlushData(day: 20, count: 2),
-        FlushData(day: 22, count: 1),
-        FlushData(day: 25, count: 2)
+        FlushData(day: 2, count: 1, date: "THURSDAY 2 APR", triggers: [TriggerItem(icon: "cup.and.saucer.fill", text: "1 Coffee")]),
+        FlushData(day: 8, count: 4, date: "WEDNESDAY 8 APR", triggers: [TriggerItem(icon: "brain.head.profile", text: "Stressed")]),
+        FlushData(day: 12, count: 5, date: "SATURDAY 12 APR", triggers: [TriggerItem(icon: "cup.and.saucer.fill", text: "5 Coffees"), TriggerItem(icon: "fork.knife", text: "Spicy food")]),
+        FlushData(day: 25, count: 2, date: "FRIDAY 25 APR", triggers: [TriggerItem(icon: "sun.max.fill", text: "Hot Weather")])
     ]
 
     var body: some View {
-        ZStack {
-            // Adaptive Background
-            (colorScheme == .dark ? Color.black : backgroundWhite)
-                .ignoresSafeArea()
-            
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 25) {
-                    
-                    // HEADER
+        ScrollView {
+            VStack(alignment: .leading, spacing: 25) {
+                
+                // HEADER
+                HStack {
+                    DoubleSidedText(text: "Monthly Insights", color: mainTextColor)
+                    Spacer()
+                    Image("ProfileIcon")
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 45, height: 45)
+                        .clipShape(Circle())
+                }
+                .padding(.horizontal)
+
+                // YEAR AND MONTH SELECTORS
+                VStack(spacing: 12) {
                     HStack {
-                        Text("Monthly Insights")
-                            .font(.system(size: 34, weight: .bold))
-                            .foregroundColor(mainTextColor)
-                        Spacer()
-                        Circle()
-                            .fill(buttonGrey)
-                            .frame(width: 40, height: 40)
-                            .overlay(
-                                Image("ProfileIcon")
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .clipShape(Circle())
-                            )
-                    }
-                    .padding(.horizontal)
-                    .padding(.top, 20)
-
-                    // MONTH SELECTOR
-                    Text("April")
-                        .font(.headline)
-                        .foregroundColor(accentTerracotta)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 8)
-                        .background(accentTerracotta.opacity(0.1))
-                        .cornerRadius(12)
-                        .padding(.horizontal)
-
-                    // MAIN CHART CARD
-                    VStack(alignment: .leading, spacing: 20) {
-                        VStack(alignment: .leading) {
-                            Text("MONTHLY FLUSHES")
-                                .font(.caption)
-                                .bold()
-                                .foregroundColor(.secondary)
-                            Text("16")
-                                .font(.system(size: 32, weight: .bold))
-                                .foregroundColor(mainTextColor)
+                        Menu {
+                            Button("Current Year (\(currentYear))") {
+                                selectedYear = currentYear
+                            }
+                            
+                            ForEach(years.filter { $0 != currentYear }, id: \.self) { year in
+                                Button(year) {
+                                    selectedYear = year
+                                }
+                            }
+                        } label: {
+                            HStack(spacing: 8) {
+                                Text(selectedYear)
+                                    .font(.subheadline.bold())
+                                Image(systemName: "chevron.down")
+                                    .font(.caption.bold())
+                            }
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 18)
+                            .padding(.vertical, 10)
+                            .background(accentTerracotta)
+                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                         }
                         
-                        Divider()
+                        Spacer()
+                    }
+                    .padding(.horizontal)
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 10) {
+                            ForEach(months, id: \.self) { month in
+                                SelectionChip(title: displayTitle(for: month), isSelected: selectedMonth == month, activeColor: accentTerracotta, inactiveTextColor: mutedText) {
+                                    selectedMonth = month
+                                }
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                }
+
+                // MAIN CHART CARD
+                VStack(alignment: .leading, spacing: 20) {
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text("MONTHLY FLUSHES")
+                            .font(.caption).bold().foregroundColor(mutedText)
                         
+                        HStack(spacing: 4) {
+                            Image("Embera")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 48, height: 48)
+                            
+                            Text("12")
+                                .font(.system(size: 28, weight: .bold))
+                                .foregroundColor(accentTerracotta)
+                        }
+                    }
+                    Divider()
+                    
+                    ScrollView(.horizontal, showsIndicators: false) {
                         Chart {
                             ForEach(sampleData) { item in
                                 BarMark(
-                                    x: .value("Day", item.day),
+                                    x: .value("Day", "\(item.day)"), // Using string for categorical spacing
                                     y: .value("Count", item.count),
-                                    width: .fixed(12)
+                                    width: .fixed(30)
                                 )
-                                .foregroundStyle(item.count >= 5 ? accentTerracotta : chartLight)
-                                .cornerRadius(4)
+                                .foregroundStyle(selectedEntry?.day == item.day ? accentTerracotta : chartLight)
+                                .cornerRadius(6)
                             }
                         }
-                        .frame(height: 180)
-                        .chartXScale(domain: 1...30)
+                        .frame(width: chartContentWidth, height: 220)
                         .chartYAxis {
-                            AxisMarks(values: [0, 2, 4])
+                            AxisMarks(position: .leading, values: Array(1...10)) { value in
+                                AxisTick()
+                                    .foregroundStyle(mutedText.opacity(0.5))
+                                AxisValueLabel {
+                                    if let count = value.as(Int.self) {
+                                        Text("\(count)")
+                                            .font(.caption2)
+                                            .foregroundColor(mutedText)
+                                    }
+                                }
+                            }
                         }
                         .chartXAxis {
-                            AxisMarks(values: [1, 5, 15, 30])
+                            AxisMarks { value in
+                                AxisValueLabel {
+                                    if let dayString = value.as(String.self) {
+                                        Text(dayString)
+                                            .font(.system(size: 12, weight: .bold))
+                                            .foregroundColor(mutedText)
+                                    }
+                                }
+                            }
                         }
+                        .chartYAxisLabel(position: .leading) {
+                            Text("flushes")
+                                .font(.caption.bold())
+                                .foregroundColor(mutedText)
+                        }
+                        .chartXAxisLabel(position: .bottom, alignment: .center) {
+                            Text("days with flushes")
+                                .font(.caption.bold())
+                                .foregroundColor(mutedText)
+                        }
+                        .chartOverlay { proxy in
+                            GeometryReader { geometry in
+                                Rectangle()
+                                    .fill(.clear)
+                                    .contentShape(Rectangle())
+                                    .gesture(
+                                        DragGesture(minimumDistance: 0)
+                                            .onEnded { value in
+                                                guard let plotFrame = proxy.plotFrame.map({ geometry[$0] }) else { return }
+                                                let relativeX = value.location.x - plotFrame.minX
+                                                
+                                                if let dayString: String = proxy.value(atX: relativeX) {
+                                                    if let dayInt = Int(dayString) {
+                                                        selectedEntry = nearestEntry(for: dayInt)
+                                                    }
+                                                }
+                                            }
+                                    )
+                            }
+                        }
+                    }
+                    .frame(height: 250)
 
-                        Text("ⓘ Tap a bar for insights per date")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .trailing)
-                        
-                        Divider()
+                    HStack {
+                        Spacer()
+                        HStack(spacing: 10) {
+                            Image(systemName: "info.circle")
+                                .font(.system(size: 18, weight: .semibold))
+                            Text("Tap a bar for insights per date")
+                                .font(.system(size: 18, weight: .regular))
+                        }
+                        .foregroundColor(mutedText)
+                        Spacer()
+                    }
 
-                        // SPECIFIC DAY DETAILS
+                    Divider()
+
+                    // DYNAMIC TRIGGER SECTION
+                    if let entry = selectedEntry {
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("SATURDAY 11 APRIL")
-                                .font(.caption)
-                                .bold()
-                                .foregroundColor(.secondary)
+                            Text(entry.date)
+                                .font(.caption).bold().foregroundColor(mutedText)
                             
                             HStack(alignment: .firstTextBaseline, spacing: 4) {
-                                Text("6")
-                                    .font(.headline)
-                                    .foregroundColor(mainTextColor)
-                                Text("hot flushes")
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
+                                Text("\(entry.count)").font(.headline).foregroundColor(mainTextColor)
+                                Text("hot flushes").font(.subheadline).foregroundColor(mutedText)
                             }
 
                             HStack {
-                                TagView(icon: "cup.and.saucer.fill", text: "5 Coffees", textColor: mainTextColor)
-                                TagView(icon: "fork.knife", text: "Spicy food", textColor: mainTextColor)
-                                TagView(icon: "brain.head.profile", text: "Stressed", textColor: mainTextColor)
+                                ForEach(entry.triggers) { trigger in
+                                    TagView(icon: trigger.icon, text: trigger.text, bgColor: tagBg, iconColor: symbolColor, textColor: mainTextColor)
+                                }
                             }
-                            
-                            Label("Busiest flush day — coffee, spicy food, and stress all logged.", systemImage: "clipboard")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                                .padding(.top, 5)
                         }
+                    } else {
+                        Text("Select a bar above to view triggers").font(.caption).foregroundColor(mutedText)
                     }
-                    .padding(20)
-                    .background(colorScheme == .dark ? Color(white: 0.15) : .white)
-                    .cornerRadius(25)
-                    .shadow(color: .black.opacity(colorScheme == .dark ? 0.3 : 0.03), radius: 10, x: 0, y: 5)
-                    .padding(.horizontal)
-
-                    // LEARN MORE SECTION
-                    VStack(alignment: .leading, spacing: 15) {
-                        Text("Learn more")
-                            .font(.title2)
-                            .bold()
-                            .foregroundColor(mainTextColor)
-                            .padding(.horizontal)
-
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 15) {
-                                ArticleCard(
-                                    title: "Many women do it alone",
-                                    source: "39% of Australian women never discussed menopause with a doctor...",
-                                    image: "article1",
-                                    url: "https://www.jeanhailes.org.au",
-                                    textColor: mainTextColor
-                                )
-                                ArticleCard(
-                                    title: "Flushes last longer than you think",
-                                    source: "3 in 4 Australian women experience hot flushes and night sweats...",
-                                    image: "article2",
-                                    url: "https://www.jeanhailes.org.au",
-                                    textColor: mainTextColor
-                                )
-                            }
-                            .padding(.horizontal)
-                        }
-                    }
-                    
-                    Spacer(minLength: 120)
                 }
+                .padding(20)
+                .background(colorScheme == .dark ? Color(white: 0.12) : Color.white)
+                .cornerRadius(25)
+                .shadow(color: .black.opacity(0.03), radius: 10, x: 0, y: 5)
+                .padding(.horizontal)
+
+                // LEARN MORE SECTION
+                VStack(alignment: .leading, spacing: 15) {
+                    Text("Learn more")
+                        .font(.title2).bold()
+                        .foregroundColor(mainTextColor)
+                        .padding(.horizontal)
+                    
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 15) {
+                            ForEach(learnMoreArticles) { article in
+                                ArticleCard(title: article.title, description: article.description, attribution: article.attribution, image: article.image, url: article.url, textColor: mainTextColor, sourceColor: mutedText)
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                }
+                Spacer(minLength: 120)
             }
         }
+        .background(pageBackground)
+    }
+}
+
+// Simple helper for header text color
+struct DoubleSidedText: View {
+    let text: String
+    let color: Color
+    var body: some View {
+        Text(text)
+            .font(.system(size: 34, weight: .bold))
+            .foregroundColor(color)
     }
 }
 
 // MARK: - Subviews
 
+struct SelectionChip: View {
+    let title: String
+    let isSelected: Bool
+    let activeColor: Color
+    let inactiveTextColor: Color
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.subheadline).bold()
+                .padding(.horizontal, 18)
+                .padding(.vertical, 8)
+                .background(isSelected ? activeColor : Color.clear)
+                .foregroundColor(isSelected ? .white : inactiveTextColor)
+                .background(Capsule().stroke(isSelected ? Color.clear : inactiveTextColor.opacity(0.35), lineWidth: 1))
+                .clipShape(Capsule())
+        }
+    }
+}
+
 struct TagView: View {
     let icon: String
     let text: String
+    let bgColor: Color
+    let iconColor: Color
     let textColor: Color
-    
     var body: some View {
         HStack(spacing: 4) {
-            Image(systemName: icon).font(.caption2)
-            Text(text).font(.caption).bold()
+            Image(systemName: icon).font(.caption2).foregroundColor(iconColor)
+            Text(text).font(.caption).bold().foregroundColor(textColor)
         }
-        .foregroundColor(textColor)
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background(Color.gray.opacity(0.12))
-        .cornerRadius(10)
+        .padding(.horizontal, 10).padding(.vertical, 6)
+        .background(bgColor).cornerRadius(10)
     }
 }
 
 struct ArticleCard: View {
-    @Environment(\.colorScheme) var colorScheme
     let title: String
-    let source: String
+    let description: String
+    let attribution: String
     let image: String
     let url: String
     let textColor: Color
+    let sourceColor: Color
+    
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             ZStack(alignment: .topTrailing) {
-                Image(image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 260, height: 150)
-                    .background(Color.gray.opacity(0.2))
-                    .clipped()
-                    .cornerRadius(15)
-                
+                Image(image).resizable().aspectRatio(contentMode: .fill).frame(width: 260, height: 150).background(Color.gray.opacity(0.2)).clipped().cornerRadius(15)
                 Link(destination: URL(string: url)!) {
-                    Image(systemName: "arrow.up.right.circle.fill")
-                        .resizable()
-                        .frame(width: 32, height: 32)
-                        .foregroundColor(.white)
-                        .background(Circle().fill(Color.black.opacity(0.2)))
-                        .padding(10)
+                    Image(systemName: "arrow.up.right.circle.fill").resizable().frame(width: 32, height: 32).foregroundColor(.white).background(Circle().fill(Color.black.opacity(0.2))).padding(10)
                 }
             }
-            
             Text(title)
                 .font(.headline)
                 .foregroundColor(textColor)
                 .lineLimit(2)
             
-            Text(source)
+            Text(description)
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(sourceColor)
                 .lineLimit(3)
             
+            Text("Source: \(attribution)")
+                .font(.caption.bold())
+                .foregroundColor(textColor.opacity(0.8))
+                .lineLimit(2)
             Spacer()
         }
-        .frame(width: 260, height: 280)
+        .frame(width: 260, height: 300)
         .padding(12)
-        .background(colorScheme == .dark ? Color(white: 0.12) : .white)
+        .background(colorScheme == .dark ? Color(white: 0.15) : Color.white)
         .cornerRadius(20)
-        .shadow(color: .black.opacity(0.05), radius: 5)
+        .shadow(color: .black.opacity(0.02), radius: 5)
     }
 }
 

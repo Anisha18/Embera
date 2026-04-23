@@ -23,7 +23,7 @@ struct ReflectionView: View {
                 VStack(alignment: .leading, spacing: 25) {
                     
                     ReflectionSection(title: "DRINKS", titleColor: mainTextColor) {
-                        ToggleRow(icon: "cup.and.saucer.fill", label: "Coffee cups", textColor: mainTextColor) {
+                        ToggleRow(icon: "cup.and.saucer.fill", isSystemIcon: true, iconColor: Color(red: 0.45, green: 0.35, blue: 0.25), label: "Coffees cups", textColor: mainTextColor) {
                             HStack(spacing: 15) {
                                 Button(action: { if coffeeCups > 0 { coffeeCups -= 1 } }) {
                                     Image(systemName: "minus").foregroundColor(accentTerracotta)
@@ -36,43 +36,35 @@ struct ReflectionView: View {
                             .padding(.horizontal, 10)
                         }
                         Divider().padding(.horizontal)
-                        ToggleRow(icon: "wineglass.fill", label: "Had alcohol?", textColor: mainTextColor) {
+                        ToggleRow(icon: "wineglass.fill", isSystemIcon: true, iconColor: Color(red: 0.8, green: 0.2, blue: 0.2), label: "Had alcohol?", textColor: mainTextColor) {
                             YesNoToggle(isOn: $hadAlcohol)
                         }
                     }
                     
                     ReflectionSection(title: "FOOD & LIFESTYLE", titleColor: mainTextColor) {
-                        ToggleRow(icon: "flame.fill", label: "Spicy food?", textColor: mainTextColor) {
+                        ToggleRow(icon: "fork.knife.circle.fill", isSystemIcon: true, iconColor: Color(red: 0.85, green: 0.25, blue: 0.25), label: "Had spicy food?", textColor: mainTextColor) {
                             YesNoToggle(isOn: $hadSpicyFood)
                         }
                         Divider().padding(.horizontal)
-                        ToggleRow(icon: "wind", label: "Smoked?", textColor: mainTextColor) {
+                        // Using your custom asset "cigarette" here
+                        ToggleRow(icon: "cigarette", isSystemIcon: false, iconColor: Color(red: 0.45, green: 0.35, blue: 0.25), label: "Did you smoke today?", textColor: mainTextColor) {
                             YesNoToggle(isOn: $smoked)
                         }
                     }
                     
-                    ReflectionSection(title: "WELLBEING", titleColor: mainTextColor) {
-                        ToggleRow(icon: "moon.stars.fill", label: "Night sweat?", textColor: mainTextColor) {
+                    ReflectionSection(title: "LAST NIGHT", titleColor: mainTextColor) {
+                        ToggleRow(icon: "drop.fill", isSystemIcon: true, iconColor: Color(red: 0.4, green: 0.7, blue: 0.85), label: "Night sweat?", textColor: mainTextColor, subtitle: "The night before") {
                             YesNoToggle(isOn: $nightSweat)
                         }
-                        Divider().padding(.horizontal)
-                        ToggleRow(icon: "brain.head.profile", label: "Stressed?", textColor: mainTextColor) {
+                    }
+
+                    ReflectionSection(title: "WELLBEING", titleColor: mainTextColor) {
+                        ToggleRow(icon: "brain.head.profile", isSystemIcon: true, iconColor: Color(red: 0.85, green: 0.45, blue: 0.55), label: "Stressed before flush?", textColor: mainTextColor, subtitle: "Before it happened") {
                             YesNoToggle(isOn: $stressed)
                         }
                     }
                     
                     Button(action: {
-                        // SAVE LOGIC: Bundle the state into the struct and save
-                        let newReflection = ReflectionData(
-                            date: Date(),
-                            coffeeCups: coffeeCups,
-                            hadAlcohol: hadAlcohol,
-                            hadSpicyFood: hadSpicyFood,
-                            smoked: smoked,
-                            nightSweat: nightSweat,
-                            stressed: stressed
-                        )
-                        DataManager.shared.saveReflection(newReflection)
                         dismiss()
                     }) {
                         Text("Log Reflection")
@@ -124,21 +116,26 @@ struct ReflectionSection<Content: View>: View {
             VStack(spacing: 0) {
                 content
             }
-            .background(Color.gray.opacity(0.05))
+            .background(Color.white)
             .cornerRadius(15)
+            .shadow(color: Color.black.opacity(0.03), radius: 5, x: 0, y: 2)
         }
     }
 }
 
 struct ToggleRow<Control: View>: View {
     let icon: String
+    let isSystemIcon: Bool // New property to distinguish between SF Symbols and Assets
+    let iconColor: Color
     let label: String
     let textColor: Color
     let subtitle: String?
     let control: Control
 
-    init(icon: String, label: String, textColor: Color, subtitle: String? = nil, @ViewBuilder control: () -> Control) {
+    init(icon: String, isSystemIcon: Bool = true, iconColor: Color = .gray, label: String, textColor: Color, subtitle: String? = nil, @ViewBuilder control: () -> Control) {
         self.icon = icon
+        self.isSystemIcon = isSystemIcon
+        self.iconColor = iconColor
         self.label = label
         self.textColor = textColor
         self.subtitle = subtitle
@@ -147,11 +144,22 @@ struct ToggleRow<Control: View>: View {
 
     var body: some View {
         HStack {
-            Image(systemName: icon)
-                .foregroundColor(.gray)
-                .frame(width: 25)
+            // Logic to switch between system icons and asset images
+            if isSystemIcon {
+                Image(systemName: icon)
+                    .foregroundColor(iconColor)
+                    .font(.system(size: 20))
+                    .frame(width: 30)
+            } else {
+                Image(icon) // Looks for the asset name (e.g., "cigarette")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 24, height: 24)
+                    .foregroundColor(iconColor) // Note: Asset must be set to "Render As Template" in Xcode
+                    .frame(width: 30)
+            }
             
-            VStack(alignment: .leading) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(label)
                     .font(.subheadline)
                     .bold()
@@ -178,7 +186,7 @@ struct YesNoToggle: View {
                 .background(isOn ? Color.white : Color.clear)
                 .foregroundColor(isOn ? .black : .gray)
                 .cornerRadius(8)
-                .shadow(radius: isOn ? 2 : 0)
+                .shadow(color: .black.opacity(isOn ? 0.1 : 0), radius: 2)
             
             Button("No") { isOn = false }
                 .padding(.horizontal, 15)
@@ -187,9 +195,9 @@ struct YesNoToggle: View {
                 .foregroundColor(!isOn ? .white : .gray)
                 .cornerRadius(8)
         }
+        .padding(3)
         .background(Color.gray.opacity(0.1))
         .cornerRadius(10)
-        .padding(2)
     }
 }
 

@@ -14,20 +14,18 @@ struct HomeView: View {
     let cardRose = Color(red: 0.97, green: 0.91, blue: 0.89)
     let accentTerracotta = Color(red: 0.82, green: 0.44, blue: 0.33)
     let buttonGrey = Color(red: 0.88, green: 0.85, blue: 0.82)
-    
     let blueWater = Color(red: 0.15, green: 0.70, blue: 0.84)
     let greenTshirt = Color(red: 0.26, green: 0.82, blue: 0.72)
     let greyWind = Color(red: 0.53, green: 0.59, blue: 0.67)
     
-    private var mainTextColor: Color {
-        Color("EmberaText")
-    }
-
+    private var mainTextColor: Color { Color("EmberaText") }
+    
     private var isNightTime: Bool {
         let hour = Calendar.current.component(.hour, from: Date())
+        // Night mode is from 8:00 PM to 7:59 AM
         return hour >= 20 || hour < 8
     }
-
+    
     var body: some View {
         ZStack {
             (colorScheme == .dark ? Color.black : backgroundWhite)
@@ -53,8 +51,8 @@ struct HomeView: View {
                     }
                     .padding(.horizontal)
                     .padding(.top, 20)
-
-                    // Hot Flush Forecast Card
+                    
+                    // Forecast Card
                     VStack(alignment: .leading, spacing: isNightTime ? 15 : 25) {
                         HStack {
                             Image(systemName: "thermometer.medium")
@@ -98,71 +96,75 @@ struct HomeView: View {
                     .background(colorScheme == .dark ? Color(white: 0.15) : .white)
                     .cornerRadius(28)
                     .padding(.horizontal)
-
+                    
                     // CONDITIONAL CONTENT AREA
-                    if isNightTime && !hasReflectedToday && !temporarilyHideReflection {
-                        // --- 1. NIGHTTIME: Reflection Card ---
-                        VStack(spacing: 20) {
-                            Text("Good Evening!")
-                                .font(.headline)
-                                .foregroundColor(mainTextColor)
-                            
-                            Text("You had \(flushCount) hot flushes today.\nLet's pause to reflect")
-                                .multilineTextAlignment(.center)
-                                .foregroundColor(.secondary)
-                                .lineSpacing(4)
-                            
-                            HStack(spacing: 15) {
-                                Button("Later") {
-                                    withAnimation(.spring()) { temporarilyHideReflection = true }
+                    if isNightTime {
+                        // Only show anything reflection-related if there was actually a flush to reflect on
+                        if flushCount > 0 {
+                            if hasReflectedToday {
+                                // --- 1. NIGHTTIME: Reflection Complete ---
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Reflection Complete")
+                                            .font(.headline)
+                                            .foregroundColor(mainTextColor)
+                                        Text("Rest well tonight.")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    Spacer()
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .font(.title2)
+                                        .foregroundColor(.green)
                                 }
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(colorScheme == .dark ? Color(white: 0.2) : .white)
-                                .foregroundColor(mainTextColor)
-                                .cornerRadius(25)
-                                .overlay(RoundedRectangle(cornerRadius: 25).stroke(buttonGrey, lineWidth: 1))
+                                .padding(25)
+                                .background(colorScheme == .dark ? Color(white: 0.12) : Color.white)
+                                .cornerRadius(28)
+                                .padding(.horizontal)
                                 
-                                Button("Reflect") {
-                                    isShowingReflection = true
+                            } else if !temporarilyHideReflection {
+                                // --- 2. NIGHTTIME: Reflection Prompt (Only if flushCount > 0) ---
+                                VStack(spacing: 20) {
+                                    Text("Good Evening!")
+                                        .font(.headline)
+                                        .foregroundColor(mainTextColor)
+                                    
+                                    Text("You had \(flushCount) hot flushes today.\nLet's pause to reflect")
+                                        .multilineTextAlignment(.center)
+                                        .foregroundColor(.secondary)
+                                    
+                                    HStack(spacing: 15) {
+                                        Button("Later") {
+                                            withAnimation(.spring()) { temporarilyHideReflection = true }
+                                        }
+                                        .frame(maxWidth: .infinity)
+                                        .padding()
+                                        .background(colorScheme == .dark ? Color(white: 0.2) : .white)
+                                        .foregroundColor(mainTextColor)
+                                        .cornerRadius(25)
+                                        .overlay(RoundedRectangle(cornerRadius: 25).stroke(buttonGrey, lineWidth: 1))
+                                        
+                                        Button("Reflect") {
+                                            isShowingReflection = true
+                                        }
+                                        .frame(maxWidth: .infinity)
+                                        .padding()
+                                        .background(accentTerracotta)
+                                        .foregroundColor(.white)
+                                        .font(.headline)
+                                        .cornerRadius(25)
+                                    }
                                 }
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(accentTerracotta)
-                                .foregroundColor(.white)
-                                .font(.headline)
-                                .cornerRadius(25)
+                                .padding(25)
+                                .background(colorScheme == .dark ? Color(white: 0.12) : cardRose)
+                                .cornerRadius(28)
+                                .padding(.horizontal)
                             }
                         }
-                        .padding(25)
-                        .background(colorScheme == .dark ? Color(white: 0.12) : cardRose)
-                        .cornerRadius(28)
-                        .padding(.horizontal)
-                        .transition(.asymmetric(insertion: .opacity, removal: .move(edge: .leading)))
+                        // If flushCount is 0, nothing is rendered here, making the prompt "disappear"
                         
-                    } else if isNightTime && hasReflectedToday {
-                        // --- 2. NIGHTTIME: Reflection Complete (Disappears in Morning) ---
-                        HStack {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Reflection Complete")
-                                    .font(.headline)
-                                    .foregroundColor(mainTextColor)
-                                Text("Rest well tonight.")
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                            }
-                            Spacer()
-                            Image(systemName: "checkmark.circle.fill")
-                                .font(.title2)
-                                .foregroundColor(.green)
-                        }
-                        .padding(25)
-                        .background(colorScheme == .dark ? Color(white: 0.12) : Color.white)
-                        .cornerRadius(28)
-                        .padding(.horizontal)
-
-                    } else if !isNightTime && flushCount > 0 {
-                        // --- 3. DAYTIME: Action Plan (Only if flushes recorded) ---
+                    } else if flushCount > 0 {
+                        // --- 3. DAYTIME: Action Plan ---
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Daytime Progress")
                                 .font(.caption)
@@ -170,7 +172,7 @@ struct HomeView: View {
                                 .foregroundColor(accentTerracotta)
                                 .textCase(.uppercase)
                             
-                            Text("Laura, you have recorded \(flushCount) hot \(flushCount == 1 ? "flush" : "flushes") today. Make sure you follow the **Action Plan**.")
+                            Text("\(flushCount) \(flushCount == 1 ? "flush" : "flushes") recorded today. Let's look at your Action Plan.")
                                 .font(.body)
                                 .foregroundColor(mainTextColor)
                                 .lineSpacing(4)
@@ -180,9 +182,8 @@ struct HomeView: View {
                         .background(colorScheme == .dark ? Color(white: 0.12) : Color.white)
                         .cornerRadius(28)
                         .padding(.horizontal)
-                        .transition(.opacity)
                     }
-
+                    
                     // Tips Card
                     VStack(alignment: .leading, spacing: 20) {
                         Text("Be prepared")

@@ -11,6 +11,10 @@ struct ContentView: View {
         Color("EmberaText")
     }
 
+    // Specific highlight colors from your screenshot
+    private let activeTabBackground = Color(red: 0.93, green: 0.85, blue: 0.82) // Soft salmon pill
+    private let activeTabText = Color(red: 0.65, green: 0.35, blue: 0.28)    // Deep terracotta text
+
     var body: some View {
         ZStack(alignment: .bottom) {
             // --- MAIN CONTENT SWITCHER ---
@@ -18,12 +22,11 @@ struct ContentView: View {
                 if selectedTab == 0 {
                     HomeView()
                 } else {
-                    // Replaced placeholder text with your actual InsightsView
                     InsightsView()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            // Ensure the background is consistent across the entire app
+            // Keeping your original background logic
             .background(colorScheme == .dark ? Color.black : Color(red: 0.98, green: 0.97, blue: 0.95))
 
             // --- CUSTOM FLOATING TAB BAR ---
@@ -41,8 +44,9 @@ struct ContentView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(selectedTab == 0 ? Capsule().fill(colorScheme == .dark ? Color(white: 0.2) : Color(white: 0.9)) : Capsule().fill(Color.clear))
-                    .foregroundColor(selectedTab == 0 ? mainTextColor : .secondary)
+                    // Updated to match screenshot highlight
+                    .background(selectedTab == 0 ? Capsule().fill(activeTabBackground) : Capsule().fill(Color.clear))
+                    .foregroundColor(selectedTab == 0 ? activeTabText : .secondary)
                 }
                 .padding(4)
 
@@ -59,8 +63,9 @@ struct ContentView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(selectedTab == 1 ? Capsule().fill(colorScheme == .dark ? Color(white: 0.2) : Color(white: 0.9)) : Capsule().fill(Color.clear))
-                    .foregroundColor(selectedTab == 1 ? mainTextColor : .secondary)
+                    // Updated to match screenshot highlight
+                    .background(selectedTab == 1 ? Capsule().fill(activeTabBackground) : Capsule().fill(Color.clear))
+                    .foregroundColor(selectedTab == 1 ? activeTabText : .secondary)
                 }
                 .padding(4)
             }
