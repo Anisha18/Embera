@@ -1,6 +1,8 @@
 import Foundation
 import WatchConnectivity
 
+// Stores the answers from the nightly reflection form.
+// Codable lets the app persist the latest reflection in shared UserDefaults.
 struct ReflectionData: Codable {
     let date: Date
     let coffeeCups: Int
@@ -11,9 +13,12 @@ struct ReflectionData: Codable {
     let stressed: Bool
 }
 
+// Central storage and sync layer shared by the iOS and watchOS targets.
+// It keeps the flush count in an App Group and mirrors new flush events through WatchConnectivity.
 class DataManager: NSObject, WCSessionDelegate {
     static let shared = DataManager()
     
+    // UserDefaults keys are grouped here so both targets write and read the same fields.
     private enum Keys {
         static let flushHistory = "flushHistory"
         static let processedFlushEventIDs = "processedFlushEventIDs"
@@ -22,9 +27,12 @@ class DataManager: NSObject, WCSessionDelegate {
         static let lastReflection = "lastReflection"
     }
     
+    // App Group storage is available to both the iPhone app and the Watch app.
     private let suite = UserDefaults(suiteName: "group.com.anishadsouza.Embera")
     
     // MARK: - Helper for 8 AM Cycle
+    
+    // The app treats each day as an 8 AM to 8 AM cycle rather than a calendar day.
     private func getLast8AMAnchor() -> Date {
         let calendar = Calendar.current
         let now = Date()
@@ -38,12 +46,15 @@ class DataManager: NSObject, WCSessionDelegate {
     }
     
     // MARK: - Flush Logic
+    
+    // Counts only the flushes recorded since the current cycle's 8 AM anchor.
     func getTodayCount() -> Int {
         let history = suite?.array(forKey: Keys.flushHistory) as? [Date] ?? []
         let anchor = getLast8AMAnchor()
         return history.filter { $0 >= anchor }.count
     }
     
+    // Creates a unique flush event, saves it locally, then sends it to the paired device.
     func logFlush() {
         let eventID = UUID().uuidString
         let now = Date()
@@ -61,6 +72,7 @@ class DataManager: NSObject, WCSessionDelegate {
         }
     }
     
+    // Saves a flush once per event ID so retries or duplicate watch messages do not double-count.
     private func saveFlush(date: Date, eventID: String) {
         guard !hasProcessed(eventID: eventID) else { return }
         var history = suite?.array(forKey: Keys.flushHistory) as? [Date] ?? []
@@ -71,6 +83,8 @@ class DataManager: NSObject, WCSessionDelegate {
     }
     
     // MARK: - Reflection Logic
+    
+    // Persists the most recent reflection and lets listening views refresh immediately.
     func saveReflection(_ data: ReflectionData) {
         if let encoded = try? JSONEncoder().encode(data) {
             suite?.set(encoded, forKey: Keys.lastReflection)
@@ -78,6 +92,7 @@ class DataManager: NSObject, WCSessionDelegate {
         }
     }
     
+    // Returns true when either no reflection is needed or the current cycle already has one.
     func hasReflectedToday() -> Bool {
         // If no flushes occurred in this 8am-8am cycle, no reflection needed
         if getTodayCount() == 0 { return true }
@@ -93,6 +108,8 @@ class DataManager: NSObject, WCSessionDelegate {
     }
     
     // MARK: - Watch Connectivity Boilerplate
+    
+    // Activating the session here ensures either app target can receive incoming flush events.
     override init() {
         super.init()
         if WCSession.isSupported() {
@@ -101,11 +118,13 @@ class DataManager: NSObject, WCSessionDelegate {
         }
     }
     
+    // Used for de-duplication when the same event arrives through multiple sync paths.
     private func hasProcessed(eventID: String) -> Bool {
         let processed = suite?.stringArray(forKey: Keys.processedFlushEventIDs) ?? []
         return processed.contains(eventID)
     }
     
+    // Keeps only the most recent IDs to prevent UserDefaults from growing forever.
     private func markProcessed(eventID: String) {
         var processed = suite?.stringArray(forKey: Keys.processedFlushEventIDs) ?? []
         processed.append(eventID)
@@ -120,6 +139,7 @@ class DataManager: NSObject, WCSessionDelegate {
     func session(_ session: WCSession, didReceiveMessage message: [String : Any]) { handleIncomingPayload(message) }
     func session(_ session: WCSession, didReceiveUserInfo userInfo: [String : Any]) { handleIncomingPayload(userInfo) }
     
+    // Converts the lightweight connectivity payload back into a dated flush event.
     private func handleIncomingPayload(_ payload: [String: Any]) {
         guard let id = payload[Keys.flushEventID] as? String,
               let ts = payload[Keys.flushTimestamp] as? TimeInterval else { return }

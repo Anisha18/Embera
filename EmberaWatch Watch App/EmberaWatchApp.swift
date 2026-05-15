@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+// Watch app entry point. It starts DataManager so watch taps can be saved locally
+// and synced back to the iPhone through WatchConnectivity.
 @main
 struct EmberaWatch_Watch_AppApp: App {
     init() {

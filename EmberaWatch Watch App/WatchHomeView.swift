@@ -1,6 +1,9 @@
 import SwiftUI
 
+// Primary watchOS screen for quickly logging a hot flush.
+// It gives immediate visual and haptic feedback after a successful log.
 struct WatchHomeView: View {
+    // showSuccess temporarily swaps the logo for a checkmark; pulseScale is ready for logo pulsing.
     @State private var showSuccess = false
     @State private var pulseScale: CGFloat = 1.0
     
@@ -11,12 +14,12 @@ struct WatchHomeView: View {
             Spacer()
             
             ZStack {
-                // Background Circle (Success state indicator)
+                // Background circle changes color to reinforce the success state.
                 Circle()
                     .fill(showSuccess ? Color.green.opacity(0.2) : Color.white.opacity(0.05))
                     .frame(width: 130, height: 130)
                 
-                // The Logo Button
+                // Tapping the logo records a flush through the shared DataManager.
                 Button(action: {
                     triggerLog()
                 }) {
@@ -36,9 +39,9 @@ struct WatchHomeView: View {
                     }
                 }
                 .buttonStyle(.plain)
-                // watchOS 11+ Hand Gesture Shortcut
+                // Lets the primary hand gesture trigger the same log action on supported watchOS versions.
                 .handGestureShortcut(.primaryAction)
-                // This creates a clean target for the system to 'glow' without breaking the view hierarchy
+                // Provides an accessibility action without changing the visual button hierarchy.
                 .accessibilityRepresentation {
                     Button("Log Flush") {
                         triggerLog()
@@ -59,10 +62,11 @@ struct WatchHomeView: View {
         }
     }
     
+    // Records a flush once, plays feedback, then resets the success state after a short delay.
     private func triggerLog() {
         if showSuccess { return }
         
-        // 1. ADD THIS LINE: This physically saves the data to the App Group
+        // Save through the shared manager so App Group storage and phone sync both happen.
         DataManager.shared.logFlush()
         
         #if os(watchOS)

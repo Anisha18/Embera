@@ -1,6 +1,9 @@
 import SwiftUI
 
+// Root iPhone view that swaps between the Home and Insights screens.
+// A custom floating tab bar is used instead of TabView so the selected tab can expand into a pill.
 struct ContentView: View {
+    // 0 = Home, 1 = Insights.
     @State private var selectedTab: Int = 0
     
     // Detects if the system is in Light or Dark mode
@@ -17,7 +20,7 @@ struct ContentView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            // --- MAIN CONTENT SWITCHER ---
+            // Shows the selected main screen behind the floating tab bar.
             Group {
                 if selectedTab == 0 {
                     HomeView()
@@ -29,7 +32,7 @@ struct ContentView: View {
             // Keeping your original background logic
             .background(colorScheme == .dark ? Color.black : Color(red: 0.98, green: 0.97, blue: 0.95))
 
-            // --- CUSTOM FLOATING TAB BAR ---
+            // Floating two-tab control. The active tab expands to show its label.
             HStack(spacing: 0) {
                 // Home Tab
                 Button(action: {

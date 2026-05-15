@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+// Default starter view retained for previews or future watch experiments.
+// The active watch app currently launches WatchHomeView instead.
 struct ContentView: View {
     var body: some View {
         VStack {

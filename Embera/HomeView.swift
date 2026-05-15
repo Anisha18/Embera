@@ -1,6 +1,9 @@
 import SwiftUI
 
+// Main dashboard for the iPhone app.
+// It shows the current flush count cycle, reflection prompts, and simple preparation tips.
 struct HomeView: View {
+    // Local UI state for animation, sheet presentation, and the latest shared data snapshot.
     @State private var isAnimating = false
     @State private var isShowingReflection = false
     @State private var flushCount: Int = DataManager.shared.getTodayCount()
@@ -20,6 +23,7 @@ struct HomeView: View {
     
     private var mainTextColor: Color { Color("EmberaText") }
     
+    // Reflection prompts are only shown overnight, matching the 8 PM to 8 AM review window.
     private var isNightTime: Bool {
         let hour = Calendar.current.component(.hour, from: Date())
         // Night mode is from 8:00 PM to 7:59 AM
@@ -33,7 +37,7 @@ struct HomeView: View {
             
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 20) {
-                    // Header
+                    // Top bar with the screen title and profile image.
                     HStack {
                         Text("Today's Outlook")
                             .font(.system(size: 34, weight: .bold))
@@ -52,7 +56,7 @@ struct HomeView: View {
                     .padding(.horizontal)
                     .padding(.top, 20)
                     
-                    // Forecast Card
+                    // Forecast card with the animated Embera mark acting as a risk indicator.
                     VStack(alignment: .leading, spacing: isNightTime ? 15 : 25) {
                         HStack {
                             Image(systemName: "thermometer.medium")
@@ -97,12 +101,12 @@ struct HomeView: View {
                     .cornerRadius(28)
                     .padding(.horizontal)
                     
-                    // CONDITIONAL CONTENT AREA
+                    // This area changes depending on time of day, flush count, and reflection status.
                     if isNightTime {
                         // Only show anything reflection-related if there was actually a flush to reflect on
                         if flushCount > 0 {
                             if hasReflectedToday {
-                                // --- 1. NIGHTTIME: Reflection Complete ---
+                                // Nighttime state after the user has already completed reflection.
                                 HStack {
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text("Reflection Complete")
@@ -123,7 +127,7 @@ struct HomeView: View {
                                 .padding(.horizontal)
                                 
                             } else if !temporarilyHideReflection {
-                                // --- 2. NIGHTTIME: Reflection Prompt (Only if flushCount > 0) ---
+                                // Nighttime prompt asking the user to complete the reflection form.
                                 VStack(spacing: 20) {
                                     Text("Good Evening!")
                                         .font(.headline)
@@ -164,7 +168,7 @@ struct HomeView: View {
                         // If flushCount is 0, nothing is rendered here, making the prompt "disappear"
                         
                     } else if flushCount > 0 {
-                        // --- 3. DAYTIME: Action Plan ---
+                        // Daytime state: acknowledge logged flushes and point users toward their plan.
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Daytime Progress")
                                 .font(.caption)
@@ -184,7 +188,7 @@ struct HomeView: View {
                         .padding(.horizontal)
                     }
                     
-                    // Tips Card
+                    // Static preparation tips displayed regardless of current flush state.
                     VStack(alignment: .leading, spacing: 20) {
                         Text("Be prepared")
                             .font(.headline)
@@ -220,12 +224,14 @@ struct HomeView: View {
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in refreshData() }
     }
     
+    // Re-reads shared storage after watch sync, reflection save, or app foregrounding.
     private func refreshData() {
         flushCount = DataManager.shared.getTodayCount()
         hasReflectedToday = DataManager.shared.hasReflectedToday()
     }
 }
 
+// Reusable row for one practical preparation tip.
 struct TipRow: View {
     let icon: String
     let iconColor: Color // Added for color variety

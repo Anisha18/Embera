@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+// iPhone app entry point. It starts the shared data manager before showing the UI
+// so WatchConnectivity can receive messages as soon as the app launches.
 @main
 struct EmberaApp: App {
     init() {

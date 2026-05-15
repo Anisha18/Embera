@@ -1,6 +1,7 @@
 import SwiftUI
 import Charts
 
+// One chartable flush record for a specific day.
 struct FlushData: Identifiable {
     let id = UUID()
     let day: Int
@@ -15,12 +16,14 @@ struct FlushData: Identifiable {
     }
 }
 
+// A possible trigger attached to a flush record.
 struct TriggerItem: Identifiable {
     let id = UUID()
     let icon: String
     let text: String
 }
 
+// Educational article metadata shown in the "Learn more" carousel.
 struct Article: Identifiable {
     let id = UUID()
     let title: String
@@ -30,6 +33,7 @@ struct Article: Identifiable {
     let url: String
 }
 
+// Monthly insights screen with date filters, a bar chart, trigger details, and article links.
 struct InsightsView: View {
     @Environment(\.colorScheme) var colorScheme
     
@@ -49,14 +53,14 @@ struct InsightsView: View {
     private let calendar = Calendar.current
     private let currentDate = Date()
     
-    // State for selection
+    // Selection state drives both the chart filter and the trigger detail area.
     @State private var selectedMonth: String
     @State private var selectedYear: String
     @State private var selectedEntry: FlushData?
     
     let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
     
-    // Static Data including requested 2023 entries
+    // Placeholder/sample data used to populate the chart before real historical storage is added.
     let sampleData: [FlushData] = [
         // APRIL 2026
         FlushData(day: 2, count: 1, date: "THURSDAY 2 APR 2026", triggers: [TriggerItem(icon: "cup.and.saucer.fill", text: "1 Coffee")]),
@@ -76,17 +80,19 @@ struct InsightsView: View {
         FlushData(day: 28, count: 4, date: "TUESDAY 28 FEB 2023", triggers: [TriggerItem(icon: "thermometer.sun.fill", text: "Heating On")])
     ]
 
-    // Filtering Logic
+    // Only entries matching the selected month and year are shown in the chart.
     private var filteredData: [FlushData] {
         sampleData.filter { data in
             data.date.contains(selectedMonth.uppercased()) && data.date.contains(selectedYear)
         }.sorted(by: { $0.day < $1.day })
     }
 
+    // Used for the large monthly total at the top of the chart card.
     private var totalMonthlyFlushes: Int {
         filteredData.reduce(0) { $0 + $1.count }
     }
 
+    // Defaults the filters to the user's current month and year.
     init() {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM"
@@ -98,14 +104,17 @@ struct InsightsView: View {
     private var currentYear: String { String(calendar.component(.year, from: currentDate)) }
     private var years: [String] { Array(2020...calendar.component(.year, from: currentDate)).map { String($0) }.reversed() }
     
+    // Keeps sparse months readable while allowing dense months to scroll horizontally.
     private var chartContentWidth: CGFloat {
         max(UIScreen.main.bounds.width - 80, CGFloat(filteredData.count) * 60)
     }
     
+    // Resolves a tapped chart x-value back to its data entry.
     private func nearestEntry(for day: Int) -> FlushData? {
         filteredData.first { $0.day == day }
     }
     
+    // Expands the selected month label while keeping unselected month chips compact.
     private func displayTitle(for month: String) -> String {
         if month == selectedMonth {
             let formatter = DateFormatter()
@@ -118,6 +127,7 @@ struct InsightsView: View {
         return month
     }
 
+    // Curated educational links shown below the chart.
     let learnMoreArticles: [Article] = [
         Article(title: "Many women do it alone", description: "The survey reports that 39% of Australian women manage menopause symptoms without treatment or support.", attribution: "Jean Hailes for Women's Health", image: "article1", url: "https://www.jeanhailes.org.au/health-a-z/menopause/menopause-management"),
         Article(title: "Flushes last longer than you think", description: "Jean Hailes reports that 3 in 4 Australian women experience hot flushes and night sweats during menopause.", attribution: "Jean Hailes for Women's Health", image: "article2", url: "https://www.jeanhailes.org.au/health-a-z/menopause/hot-flushes-night-sweats"),
@@ -128,7 +138,7 @@ struct InsightsView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 25) {
                 
-                // HEADER
+                // Header row with the screen title and profile image.
                 HStack {
                     DoubleSidedText(text: "Monthly Insights", color: mainTextColor)
                     Spacer()
@@ -140,7 +150,7 @@ struct InsightsView: View {
                 }
                 .padding(.horizontal)
 
-                // YEAR AND MONTH SELECTORS
+                // Year menu and horizontally scrolling month chips filter the chart.
                 VStack(spacing: 12) {
                     HStack {
                         Menu {
@@ -180,7 +190,7 @@ struct InsightsView: View {
                     }
                 }
 
-                // MAIN CHART CARD
+                // Main chart card containing the monthly total, bars, and selected-day details.
                 VStack(alignment: .leading, spacing: 20) {
                     VStack(alignment: .leading, spacing: 5) {
                         Text("MONTHLY FLUSHES")
@@ -267,7 +277,7 @@ struct InsightsView: View {
 
                     Divider()
 
-                    // DYNAMIC TRIGGER SECTION
+                    // Shows triggers for the tapped bar, or an instruction before a bar is selected.
                     if let entry = selectedEntry {
                         VStack(alignment: .leading, spacing: 12) {
                             Text(entry.date)
@@ -298,7 +308,7 @@ struct InsightsView: View {
                 .shadow(color: .black.opacity(0.03), radius: 10, x: 0, y: 5)
                 .padding(.horizontal)
 
-                // LEARN MORE SECTION
+                // Article carousel with external links for deeper reading.
                 VStack(alignment: .leading, spacing: 15) {
                     Text("Learn more")
                         .font(.title2).bold()
@@ -323,6 +333,7 @@ struct InsightsView: View {
 
 // MARK: - Subviews & Helpers
 
+// Thin wrapper around the page title so styling stays consistent if reused later.
 struct DoubleSidedText: View {
     let text: String
     let color: Color
@@ -331,6 +342,7 @@ struct DoubleSidedText: View {
     }
 }
 
+// Pill-shaped filter control used for month selection.
 struct SelectionChip: View {
     let title: String
     let isSelected: Bool
@@ -352,6 +364,7 @@ struct SelectionChip: View {
     }
 }
 
+// Compact trigger label with an icon and text.
 struct TagView: View {
     let icon: String
     let text: String
@@ -368,6 +381,7 @@ struct TagView: View {
     }
 }
 
+// Horizontal article card with an image, summary, source, and outbound link button.
 struct ArticleCard: View {
     let title: String
     let description: String

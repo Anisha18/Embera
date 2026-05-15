@@ -1,9 +1,11 @@
 import SwiftUI
 
+// Modal form shown at night so the user can record possible triggers for the current cycle.
 struct ReflectionView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) var colorScheme
     
+    // Form state is converted into ReflectionData when the user taps "Log Reflection".
     @State private var coffeeCups = 0
     @State private var hadAlcohol = false
     @State private var hadSpicyFood = false
@@ -22,6 +24,7 @@ struct ReflectionView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 25) {
                     
+                    // Drink-related inputs: coffee count plus an alcohol yes/no toggle.
                     ReflectionSection(title: "DRINKS", titleColor: mainTextColor) {
                         ToggleRow(icon: "cup.and.saucer.fill", isSystemIcon: true, iconColor: Color(red: 0.45, green: 0.35, blue: 0.25), label: "Coffees cups", textColor: mainTextColor) {
                             HStack(spacing: 15) {
@@ -41,6 +44,7 @@ struct ReflectionView: View {
                         }
                     }
                     
+                    // Food and lifestyle questions that may correlate with symptoms.
                     ReflectionSection(title: "FOOD & LIFESTYLE", titleColor: mainTextColor) {
                         ToggleRow(icon: "fork.knife.circle.fill", isSystemIcon: true, iconColor: Color(red: 0.85, green: 0.25, blue: 0.25), label: "Had spicy food?", textColor: mainTextColor) {
                             YesNoToggle(isOn: $hadSpicyFood)
@@ -51,18 +55,21 @@ struct ReflectionView: View {
                         }
                     }
                     
+                    // Tracks symptoms from the previous night.
                     ReflectionSection(title: "LAST NIGHT", titleColor: mainTextColor) {
                         ToggleRow(icon: "drop.fill", isSystemIcon: true, iconColor: Color(red: 0.4, green: 0.7, blue: 0.85), label: "Night sweat?", textColor: mainTextColor, subtitle: "The night before") {
                             YesNoToggle(isOn: $nightSweat)
                         }
                     }
 
+                    // Captures emotional context before the flush occurred.
                     ReflectionSection(title: "WELLBEING", titleColor: mainTextColor) {
                         ToggleRow(icon: "brain.head.profile", isSystemIcon: true, iconColor: Color(red: 0.85, green: 0.45, blue: 0.55), label: "Stressed before flush?", textColor: mainTextColor, subtitle: "Before it happened") {
                             YesNoToggle(isOn: $stressed)
                         }
                     }
                     
+                    // Save the completed reflection to shared storage and close the sheet.
                     Button(action: {
                         let data = ReflectionData(
                             date: Date(),
@@ -104,6 +111,7 @@ struct ReflectionView: View {
 
 // MARK: - Reusable UI Components
 
+// Groups related reflection rows under a small section title and card background.
 struct ReflectionSection<Content: View>: View {
     @Environment(\.colorScheme) var colorScheme
     let title: String
@@ -135,6 +143,7 @@ struct ReflectionSection<Content: View>: View {
     }
 }
 
+// Generic form row that supports either SF Symbols or an asset image plus a custom control.
 struct ToggleRow<Control: View>: View {
     let icon: String
     let isSystemIcon: Bool
@@ -186,6 +195,7 @@ struct ToggleRow<Control: View>: View {
     }
 }
 
+// Two-segment yes/no control styled to match the reflection card design.
 struct YesNoToggle: View {
     @Environment(\.colorScheme) var colorScheme
     @Binding var isOn: Bool
